@@ -17,7 +17,7 @@ cdef class Referral:
         self.remote_contact_header = None
 
     def __init__(self, SIPURI request_uri not None, FromHeader from_header not None, ToHeader to_header not None, ReferToHeader refer_to_header not None,
-                 ContactHeader contact_header not None, RouteHeader route_header not None, Credentials credentials=None):
+                 ContactHeader contact_header not None, RouteHeader route_header not None, Credentials credentials=None,bool remove_tag = False):
         global _refer_cb
         global _refer_event
         cdef PJSTR from_header_str
@@ -36,12 +36,14 @@ cdef class Referral:
         if credentials is not None:
             self.credentials = FrozenCredentials.new(credentials)
         from_header_parameters = from_header.parameters.copy()
-        from_header_parameters.pop("tag", None)
-        from_header.parameters = {}
+        if not remove_tag:
+                from_header_parameters.pop("tag", None)
+                from_header.parameters = {}
         from_header_str = PJSTR(from_header.body.encode())
         to_header_parameters = to_header.parameters.copy()
-        to_header_parameters.pop("tag", None)
-        to_header.parameters = {}
+        if not remove_tag:
+                to_header_parameters.pop("tag", None)
+                to_header.parameters = {}
         to_header_str = PJSTR(to_header.body.encode())
         contact_str = PJSTR(str(contact_header.body).encode())
         request_uri_str = PJSTR(str(request_uri).encode())
@@ -239,6 +241,8 @@ cdef class Referral:
         if status != 0:
             raise PJSIPError("Could not create REFER message", status)
         _add_headers_to_tdata(tdata, [refer_to_header, Header('Referred-By', str(self.from_header.uri))])
+        if extra_headers.get('Call-ID') is not None:
+            _remove_headers_from_tdata(tdata, [b"Call-ID"])
         _add_headers_to_tdata(tdata, extra_headers)
         if not self._create_subscription:
             _add_headers_to_tdata(tdata, [Header('Refer-Sub', 'false')])
