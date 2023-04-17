@@ -241,8 +241,7 @@ cdef class Referral:
         if status != 0:
             raise PJSIPError("Could not create REFER message", status)
         _add_headers_to_tdata(tdata, [refer_to_header, Header('Referred-By', str(self.from_header.uri))])
-        if extra_headers.get('Call-ID') is not None:
-            _remove_headers_from_tdata(tdata, [b"Call-ID"])
+        _remove_headers_from_tdata(tdata, [b"Call-ID"])
         _add_headers_to_tdata(tdata, extra_headers)
         if not self._create_subscription:
             _add_headers_to_tdata(tdata, [Header('Refer-Sub', 'false')])
