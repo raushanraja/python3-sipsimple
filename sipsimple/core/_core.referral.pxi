@@ -17,7 +17,7 @@ cdef class Referral:
         self.remote_contact_header = None
 
     def __init__(self, SIPURI request_uri not None, FromHeader from_header not None, ToHeader to_header not None, ReferToHeader refer_to_header not None,
-                 ContactHeader contact_header not None, RouteHeader route_header not None, Credentials credentials=None,bool remove_tag = False):
+                 ContactHeader contact_header not None, RouteHeader route_header not None, Credentials credentials=None,int remove_tag = 0):
         global _refer_cb
         global _refer_event
         cdef PJSTR from_header_str
@@ -36,12 +36,12 @@ cdef class Referral:
         if credentials is not None:
             self.credentials = FrozenCredentials.new(credentials)
         from_header_parameters = from_header.parameters.copy()
-        if not remove_tag:
+        if remove_tag == 0:
                 from_header_parameters.pop("tag", None)
                 from_header.parameters = {}
         from_header_str = PJSTR(from_header.body.encode())
         to_header_parameters = to_header.parameters.copy()
-        if not remove_tag:
+        if remove_tag == 0:
                 to_header_parameters.pop("tag", None)
                 to_header.parameters = {}
         to_header_str = PJSTR(to_header.body.encode())
